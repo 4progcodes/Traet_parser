@@ -6,7 +6,6 @@ namespace DTST
 	class AVLDict
 	{
 	protected:
-
 		class AVLEl
 		{
 		public:
@@ -162,15 +161,74 @@ namespace DTST
 			else { f.Left = min; }*/
 			return balance(min);
 		}
-		bool copyFrom(AVLDict* from)
+	public:
+		AVLDict(AVLDict& orig)
 		{
-			//std::cout << "copyfunc adr: " << from << std::endl;
-			if (!from) { return false; }
-			if (!from->Root) { return false; }
-			if (Root) { return false; }
-			Root = new AVLEl(from->Root);
-			AVLEl* tempTo = Root, * tempFrom = from->Root;
-			for (int i = 1; i <= from->QuantityEl; )
+			*this = orig;
+		}
+		AVLDict(AVLDict&& orig)
+		{
+			*this = orig;
+		}
+		//AVLDict(AVLDict &orig, bool iscopy = true) : AVLDict(&orig, iscopy) { }
+		AVLDict() {}
+		void delAVLDict()
+		{
+			QuantityLeafs = Height = 0;
+			if (Root == NULL) 
+			{ 
+				QuantityEl = 0;
+				return; 
+			}
+			AVLEl* temp1 = Root, * temp2;
+			while (QuantityEl > 0)
+			{
+				if (temp1->Left)
+				{
+					temp1 = temp1->Left;
+					temp1->Father->Left = NULL;
+				}
+				else if (temp1->Right)
+				{
+					temp1 = temp1->Right;
+					temp1->Father->Right = NULL;
+				}
+				else
+				{
+					temp2 = temp1->Father;
+					--QuantityEl;
+					delete temp1;
+					temp1 = temp2;
+				}
+			}
+			Root = NULL;
+		}
+		bool addEl(T1 k, T2 v)
+		{
+			if (Root == NULL)
+			{
+				Root = insertEl(Root, k, v);
+				if (Root) { return true; }
+				return false;
+			}
+			if (insertEl(Root, k, v)) { return true; }
+			return false;
+		}
+		T2 operator[] (T1 index) const
+		{
+			return keyFindEl(Root, index)->Value;
+		}
+		T2& operator[] (T1 index)
+		{
+			return keyFindEl(Root, index)->Value;
+		}
+		AVLDict &operator = (AVLDict& second)
+		{
+			if (!second.Root) { return *this; }
+			delAVLDict();
+			Root = new AVLEl(second.Root);
+			AVLEl* tempTo = Root, * tempFrom = second.Root;
+			for (int i = 1; i <= second.QuantityEl; )
 			{
 				if (tempFrom->Left && !tempTo->Left)
 				{
@@ -193,96 +251,24 @@ namespace DTST
 				}
 				else
 				{
-					return false;
+					break;
 				}
 			}
-			QuantityEl = from->QuantityEl;
-			QuantityLeafs = from->QuantityLeafs;
-			return true;
-		}
-	public:
-		AVLDict(AVLDict* orig, bool iscopy = true)
-		{
-			if (iscopy) { copyFrom(orig); std::cout << "copy\n"; }
-			else { cutFrom(orig); std::cout << "cut\n"; }
-		}
-		//AVLDict(AVLDict &orig, bool iscopy = true) : AVLDict(&orig, iscopy) { }
-		AVLDict() {}
-		void delAVLDict()
-		{
-			if (Root == NULL) { return; }
-			AVLEl* temp1 = Root, * temp2;
-			while (QuantityEl > 0)
-			{
-				if (temp1->Left)
-				{
-					temp1 = temp1->Left;
-					temp1->Father->Left = NULL;
-				}
-				else if (temp1->Right)
-				{
-					temp1 = temp1->Right;
-					temp1->Father->Right = NULL;
-				}
-				else
-				{
-					temp2 = temp1->Father;
-					--QuantityEl;
-					delete temp1;
-					temp1 = temp2;
-				}
-			}
-		}
-		bool addEl(T1 k, T2 v)
-		{
-			if (Root == NULL)
-			{
-				Root = insertEl(Root, k, v);
-				if (Root) { return true; }
-				return false;
-			}
-			if (insertEl(Root, k, v)) { return true; }
-			return false;
-		}
-		T2 operator[] (T1 index) const
-		{
-			return keyFindEl(Root, index)->Value;
-		}
-		T2& operator[] (T1 index)
-		{
-			return &keyFindEl(Root, index)->Value;
-		}
-		AVLDict &operator = (AVLDict& second)
-		{
-			if (Root) 
-			{ 
-				delAVLDict();
-			}
-			copyFrom(&second);
+			QuantityEl = second.QuantityEl;
+			QuantityLeafs = second.QuantityLeafs;
 			return *this;
 		}
-		bool cutFrom(AVLDict* from)
+		AVLDict& operator = (AVLDict&& second)
 		{
-			if (!from) { return false; }
-			if (!from->Root) { return false; }
-			if (Root) { return false; }
-			QuantityEl = from->QuantityEl;
-			QuantityLeafs = from->QuantityLeafs;
-			Root = from->Root;
-			from->Root = NULL;
+			if (!second.Root || (&second == this)) { return *this; }
+			delAVLDict();
+			QuantityEl = second.QuantityEl;
+			QuantityLeafs = second.QuantityLeafs;
+			Root = second.Root;
+			second.Root = NULL;
+			second.QuantityEl = second.QuantityLeafs = 0;
 			return true;
 		}
-		bool cutFrom(AVLDict& from)
-		{
-			if (!from.Root) { return false; }
-			if (Root) { return false; }
-			QuantityEl = from.QuantityEl;
-			QuantityLeafs = from.QuantityLeafs;
-			Root = from.Root;
-			from.Root = NULL;
-			return true;
-		}
-		
 		~AVLDict() { delAVLDict(); }
 	};
 
@@ -398,6 +384,14 @@ namespace DTST
 		}
 	public:
 		List() {}
+		List(List& orig)
+		{
+			*this = orig;
+		}
+		List(List&& orig)
+		{
+			*this = orig;
+		}
 		//void* getLastElID() { return (void*)Last; }
 		//void* getFirstElID() { return (void*)First; }
 		void addEl(T el)
