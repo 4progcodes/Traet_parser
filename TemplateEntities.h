@@ -298,7 +298,8 @@ namespace DTST
 			ListEl() {}
 		};
 		unsigned Length;
-		ListEl* First = NULL, * Last = NULL, * Current = NULL;
+		ListEl* First = NULL, * Last = NULL;
+		mutable ListEl* Current = NULL;
 		void insertEl(ListEl* el, ListEl* key, bool order)
 		{
 			++Length;
@@ -383,6 +384,13 @@ namespace DTST
 			delete del;
 			del = NULL;
 		}
+		void delAll()
+		{
+			while (Length > 0)
+			{
+				delEl(Last);
+			}
+		}
 		void resetCounter(bool edge)
 		{
 			if (edge) { Current = First; }
@@ -411,7 +419,7 @@ namespace DTST
 		T dumpEl()
 		{
 			T temp = First->content;
-			delEl(Last);
+			delEl(First);
 			return temp;
 		}
 		T getLastEl() { return Last->content; }
@@ -444,16 +452,34 @@ namespace DTST
 			}
 			return temp->content;
 		}
-		List operator = (List second)
+		List & operator = (const List &second)
 		{
 			if (Length != 0)
 			{
-				return *this;
+				delAll();
 			}
-			this->Current = second.Current;
-			this->First = second.First;
-			this->Last = second.Last;
-			this->Length = second.Length;
+			ListEl* temp = second.Current;
+			second.Current = second.First;
+			while (Length != second.Length)
+			{
+				addEl(second.Current->content);
+				if (temp == second.Current) { Current = Last; }
+				second.Current = second.Current->Next;
+			}
+			second.Current = temp;
+			return *this;
+		}
+		List& operator = (const List&& second)
+		{
+			if (&second == this) { return *this; }
+			if (Length != 0) { delAll(); }
+			First = second.First;
+			Last = second.Last;
+			Current = second.Current;
+			Length = second.Length;
+			second.First = second.Last = second.Current = NULL;
+			second.Length = 0;
+			return *this;
 		}
 		T countList(bool direction)
 		{
@@ -464,13 +490,10 @@ namespace DTST
 		}
 		void setCountFirst() { resetCounter(true); }
 		void setCountLast() { resetCounter(false); }
+
 		~List() 
 		{
-			//std::cout << "list destructor";
-			while (Length > 0)
-			{
-				delEl(Last);
-			}
+			delAll();
 		}
 
 	};
