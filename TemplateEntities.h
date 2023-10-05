@@ -1,496 +1,421 @@
 #pragma once
-#include <iostream>
+#include "DTST.h"
+#include "BaseTemplateEntities.h"
 namespace DTST
 {
-	template<typename T1, typename T2>
-	class AVLDict
+	class XmlText
 	{
 	protected:
-		class AVLEl
-		{
-		public:
-			T1 Key;
-			T2 Value;
-			AVLEl* Father, * Left, * Right;
-			unsigned short Height;
-			AVLEl(AVLEl* father, T1 key, T2 value) : Father(father), Key(key), Value(value) {}
-			AVLEl(T1 key, T2 value) : Key(key), Value(value) {}
-			AVLEl(AVLEl* el, AVLEl* father = NULL)
-			{
-				Father = father;
-				Key = el->Key;
-				Value = el->Value;
-				Height = el->Height;
-			}
-			AVLEl* operator ->() { return this; }
-		};
-		//Father(father), Key(el->Key), Value(el->Value),
-		//Height(el->Height)
-		unsigned QuantityEl = 0, Height = 0, QuantityLeafs = 1;
-		AVLEl* Root;
-
-		static int height(AVLEl* p)
-		{
-			return p ? p->Height : -1;
-		}
-		static int equals(AVLEl* p)
-		{
-			return height(p->Right) - height(p->Left);
-		}
-		static AVLEl* keyFindEl(AVLEl* p, T1 k)
-		{
-			if (!p) { return NULL; }
-			if (p->Key < k) { return AVLDict::keyFindEl(p->Right, k); }
-			if (p->Key > k) { return AVLDict::keyFindEl(p->Left, k); }
-			return p;
-		}
-		static AVLEl* findMin(AVLEl* p)
-		{
-			if (!p) { return NULL; }
-			return p->Left ? findMin(p->Left) : p;
-		}
-		static AVLEl* findMax(AVLEl* p)
-		{
-			if (!p) { return NULL; }
-			return p->Right ? findMin(p->Right) : p;
-		}
-		static void fixheight(AVLEl* p)
-		{
-			if (!p) { return; }
-			int hl = height(p->Left), hr = height(p->Right);
-			p->Height = (hl > hr ? hl : hr) + 1;
-		}
-		AVLEl* rotateLeft(AVLEl* p)
-		{
-			short before = 0, after = 0;
-			AVLEl* q = p->Right;
-			if (!q->Left && !q->Right) { ++before; }
-			if (!p->Left && !p->Right) { ++before; }
-			q->Father = p->Father;
-			q->Left->Father = p;
-			p->Father = q;
-			p->Right = q->Left;
-			q->Left = p;
-			fixheight(p);
-			fixheight(q);
-			if (!q->Left && !q->Right) { ++after; }
-			if (!p->Left && !p->Right) { ++after; }
-			QuantityLeafs += after - before;
-			if (p == Root)
-			{
-				Root = q;
-				Root->Father = NULL;
-			}
-			return q;
-		}
-		AVLEl* rotateRight(AVLEl* p)
-		{
-			short before = 0, after = 0;
-			AVLEl* q = p->Left;
-			if (!q->Left && !q->Right) { ++before; }
-			if (!p->Left && !p->Right) { ++before; }
-			q->Father = p->Father;
-			if (q->Right) { q->Right->Father = p; }
-			p->Father = q;
-			p->Left = q->Right;
-			q->Right = p;
-			fixheight(p);
-			fixheight(q);
-			if (!q->Left && !q->Right) { ++after; }
-			if (!p->Left && !p->Right) { ++after; }
-			QuantityLeafs += after - before;
-			if (p == Root)
-			{
-				Root = q;
-				Root->Father = NULL;
-			}
-			return q;
-		}
-		AVLEl* balance(AVLEl* p)
-		{
-			fixheight(p);
-			if (equals(p) == 2)
-			{
-				if (equals(p->Right) < 0)
-					p->Right = rotateRight(p->Right);
-				return rotateLeft(p);
-			}
-			if (equals(p) == -2)
-			{
-				if (equals(p->Left) > 0)
-					p->Left = rotateLeft(p->Left);
-				return rotateRight(p);
-			}
-			return p;
-		}
-		AVLEl* insertEl(AVLEl* p, T1 k, T2 v)
-		{
-			static AVLEl* father = NULL;
-			if (!p)
-			{
-				++QuantityEl;
-				if (father == NULL) { ++QuantityLeafs; }
-				else if (father->Left == father->Right == NULL) { ++QuantityLeafs; }
-				return new AVLEl(father, k, v);
-			}
-			father = p;
-			if (p->Key < k) { p->Right = insertEl(p->Right, k, v); }
-			else if (p->Key > k) { p->Left = insertEl(p->Left, k, v); }
-			else { return NULL; }
-			return balance(p);
-		}
-		static AVLEl* removeMin(AVLEl* p)
-		{
-			if (!p->Left) { return p->Right; }
-			p->Left = removeMin(p->Left);
-			return balance(p);
-		}
-		static AVLEl* removeEl(AVLEl* p)
-		{
-			if (!p) { return NULL; }
-			AVLEl* l = p->Left, r = p->Right, f = p->Father;
-			if (!l && !r) { --QuantityLeafs; }
-			--QuantityEl;
-			delete p;
-			if (!r) { return l; }
-			AVLEl* min = findMin(r);
-			min->Right = removeMin(r);
-			min->Left = l;
-			min->Father = f;/*
-			if (min->Key > f.Key) { f.Right = min; }
-			else { f.Left = min; }*/
-			return balance(min);
-		}
+		List<unsigned>* ToReplace = NULL;
+		std::string Name;
+		void* Father;
+		XmlText(std::string name, void* father = NULL) : Name(name), Father(father) {}
 	public:
-		AVLDict(AVLDict& orig)
+		virtual std::string textDump(bool showFormat)
 		{
-			*this = orig;
-		}
-		AVLDict(AVLDict&& orig)
-		{
-			*this = orig;
-		}
-		//AVLDict(AVLDict &orig, bool iscopy = true) : AVLDict(&orig, iscopy) { }
-		AVLDict() {}
-		void delAVLDict()
-		{
-			QuantityLeafs = Height = 0;
-			if (Root == NULL) 
-			{ 
-				QuantityEl = 0;
-				return; 
-			}
-			AVLEl* temp1 = Root, * temp2;
-			while (QuantityEl > 0)
+			if (showFormat) { return Name + "\n"; }
+			else
 			{
-				if (temp1->Left)
+				ToReplace->setCountFirst();
+				std::string Ret;
+				unsigned k = 0;
+				for (unsigned i = 0; i < Name.length(); ++i)
 				{
-					temp1 = temp1->Left;
-					temp1->Father->Left = NULL;
+					if (ToReplace->length() != k)
+					{
+						if (ToReplace->countList(true) == i)
+						{
+							std::string temp;
+							temp += Name[i];
+							Ret += DTST::toCode[temp];
+							++k;
+							continue;
+						}
+					}
+					Ret += Name[i];
 				}
-				else if (temp1->Right)
-				{
-					temp1 = temp1->Right;
-					temp1->Father->Right = NULL;
-				}
-				else
-				{
-					temp2 = temp1->Father;
-					--QuantityEl;
-					delete temp1;
-					temp1 = temp2;
-				}
+				return Ret + "\n";
 			}
-			Root = NULL;
 		}
-		bool addEl(T1 k, T2 v)
+		XmlText(List<unsigned>* toReplace, std::string name = "", void* father = NULL) :
+			XmlText(name, father)
 		{
-			if (Root == NULL)
+			if (toReplace == NULL)
 			{
-				Root = insertEl(Root, k, v);
-				if (Root) { return true; }
-				return false;
+				ToReplace = new DTST::List<unsigned>();
+				//cerr << "Can't create XmlText without repalce list\n";
 			}
-			if (insertEl(Root, k, v)) { return true; }
-			return false;
-		}
-		T2 operator[] (T1 index) const
-		{
-			return keyFindEl(Root, index)->Value;
-		}
-		T2& operator[] (T1 index)
-		{
-			return keyFindEl(Root, index)->Value;
-		}
-		AVLDict &operator = (AVLDict& second)
-		{
-			if (!second.Root) { return *this; }
-			delAVLDict();
-			Root = new AVLEl(second.Root);
-			AVLEl* tempTo = Root, * tempFrom = second.Root;
-			for (int i = 1; i <= second.QuantityEl; )
+			else
 			{
-				if (tempFrom->Left && !tempTo->Left)
+				ToReplace = toReplace;
+			}
+		}
+		~XmlText()
+		{
+			delete(ToReplace);
+		}
+	};
+
+
+template<typename T1>
+class parser
+{
+	struct settings
+	{
+		unsigned shift : 1;
+		unsigned stepout : 1;
+	};
+	List <settings> OptionSaves;
+	List <unsigned> PosSaves;
+	settings Options;
+	Mark ReadPos;
+	T1* Text;
+	void saveOptions() { OptionSaves.addEl(Options); }
+	void loadOptions() { Options = OptionSaves.popEl(); }
+	void clearOptionSave() { OptionSaves.popEl(); }
+	//void 
+public:
+	void setShift(bool Shift) { Options.shift = Shift; }
+	void setStepout(bool Stepout) { Options.stepout = Stepout; }
+	void savePoint() { PosSaves.addEl(ReadPos.getPosition()); }
+	void loadPoint() { ReadPos.setPosition(PosSaves.popEl()); }
+	void clearPointSave() { PosSaves.popEl(); }
+	void setCurentPos(unsigned pos) { ReadPos.setPosition(pos); }
+	unsigned getCurrentPos() { return ReadPos.getPosition(); }
+	parser(T1* text, unsigned start, unsigned end) : Text(text), ReadPos(start, end) {}
+	parser(T1* text) : Text(text), ReadPos(0, text->length() - 1) {}
+	template<typename T2>
+	int compSubStr(T2* less, int n = 1, unsigned end = 0)
+	{
+		savePoint();
+		if (end == 0) { end = ReadPos.getMaxPosition(); }
+		else if (ReadPos.getMaxPosition() < end)
+		{
+			std::cerr << "End of reading lable more than text length\n";
+			return -2;
+		}
+		if (ReadPos.getMaxPosition() < less->length())
+		{
+			std::cerr << "Substring longer than text\n";
+			return -3;
+		}
+		if (n < 0)
+		{
+			std::cerr << "Invalid number of expected enters\n";
+			return -4;
+		}
+		int i = 0;
+		do {
+			if (Text[0][ReadPos.getPosition()] == less[0][i])
+			{
+				if (++i == less->length())
 				{
-					tempTo->Left = new AVLEl(tempFrom->Left, tempTo);
-					++i;
-					tempTo = tempTo->Left;
-					tempFrom = tempFrom->Left;
-				}
-				else if (tempFrom->Right && !tempTo->Right)
-				{
-					tempTo->Right = new AVLEl(tempFrom->Right, tempTo);
-					++i;
-					tempTo = tempTo->Right;
-					tempFrom = tempFrom->Right;
-				}
-				else if (tempTo->Father)
-				{
-					tempTo = tempTo->Father;
-					tempFrom = tempFrom->Father;
-				}
-				else
-				{
-					break;
+					if (--n == 0)
+					{
+						int ret = ReadPos.getPosition() - --i;
+						if (Options.shift)
+						{
+							if (Options.stepout)
+							{
+								++ReadPos;
+							}
+							clearPointSave();
+						}
+						else
+						{
+							loadPoint();
+						}
+						return ret;
+					}
+					i = 0;
 				}
 			}
-			QuantityEl = second.QuantityEl;
-			QuantityLeafs = second.QuantityLeafs;
-			return *this;
-		}
-		AVLDict& operator = (AVLDict&& second)
+			else { i = 0; }
+		} while (ReadPos++.getPosition() < end);
+		loadPoint();
+		if (n < 1)
 		{
-			if (!second.Root || (&second == this)) { return *this; }
-			delAVLDict();
-			QuantityEl = second.QuantityEl;
-			QuantityLeafs = second.QuantityLeafs;
-			Root = second.Root;
-			second.Root = NULL;
-			second.QuantityEl = second.QuantityLeafs = 0;
+			return -n;
+		}
+		else
+		{
+			return -1;
+		}
+	}
+	template<typename T2>
+	int compSubStr(T2 less, int n = 1, unsigned end = 0)
+	{
+		return compSubStr(&less, n, end);
+	}
+	int compSubStr(const char* less, int n = 1, unsigned end = 0)
+	{
+		std::string Less(less);
+		return compSubStr(&Less, n, end);
+	}
+	template<typename T2>
+	int skipSyms(T2* skiped, unsigned end = 0)
+	{
+		if (end == 0) { end = ReadPos.getMaxPosition(); }
+		else if (ReadPos.getMaxPosition() <= end)
+		{
+			std::cerr << "End of reading lable more than text length\n";
+			return -2;
+		}
+		int i = ReadPos.getPosition();
+		while (i <= end)
+		{
+			for (int j = 0; j < skiped->length(); j)
+			{
+				if (Text[0][i] == skiped[0][j])
+				{
+					if (++i > ReadPos.getMaxPosition()) { return -1; }
+					j = 0;
+				}
+				else { ++j; }
+			}
+			break;
+		}
+		if (Options.shift) { ReadPos.setPosition(i); }
+		return i;
+	}
+	template<typename T2>
+	int skipSyms(T2 skiped, unsigned end = 0)
+	{
+		return skipSyms(&skiped, end);
+	}
+	int skipSyms(const char* skiped, unsigned end = 0)
+	{
+		std::string Skiped(skiped);
+		return skipSyms(&Skiped, end);
+	}
+	std::string takeSubStr(std::string sep1 = "", std::string sep2 = "", bool takesep1 = false, bool takesep2 = false)
+	{
+		std::string ret;
+		int start, end, oldpos = ReadPos.getPosition();
+		saveOptions();
+		setShift(true);
+		setStepout(true);
+		if (sep1 == "") { start = ReadPos.getPosition(); }
+		else { start = compSubStr(&sep1); }
+		Options.stepout = OptionSaves.getLastEl().stepout;
+		if (sep2 == "") { end = ReadPos.getMaxPosition(); }
+		else { end = compSubStr(&sep2); }
+		loadOptions();
+		if (!Options.shift) { ReadPos.setPosition(oldpos); }
+		if (!takesep1) { ++start; }
+		if (!takesep2) { --end; }
+		while (start <= end)
+		{
+			ret += Text[0][start++];
+		}
+		return ret;
+	}
+	Attribute takeAttribute(bool valueless)
+	{
+		std::string Stoper = "=", Sep = "\"";
+		Attribute Ret;
+		int IndexTemp1, IndexTemp2;
+		bool AddNamespace;
+		if (valueless) { Stoper = " "; }
+		savePoint();
+		saveOptions();
+		setShift(true);
+		setStepout(true);
+		skipSyms("	 \n\r\"'</");
+		setShift(false);
+		IndexTemp1 = compSubStr(Stoper);
+		IndexTemp2 = compSubStr(">");
+		if (IndexTemp1 == IndexTemp2) { std::cerr << "Invalid separator syntaxis"; }
+		if (IndexTemp1 > IndexTemp2 || IndexTemp1 == -1) {
+			IndexTemp1 = IndexTemp2;
+			Stoper = ">";
+		}
+		AddNamespace = (bool)(compSubStr(":", 1, compSubStr(Stoper)) != -1);
+		AddNamespace = (bool)(compSubStr(":", 1, IndexTemp1) != -1);
+		setShift(true);
+		if (AddNamespace)
+		{
+			Ret.setNameSpace(takeSubStr("", ":", true));
+		}
+		Ret.setName(takeSubStr("", Stoper, true));
+		if (!valueless)
+		{
+			setShift(false);
+			IndexTemp1 = compSubStr("\"");
+			IndexTemp2 = compSubStr("'");
+			if (IndexTemp1 > IndexTemp2 && (IndexTemp2 >= 0))
+			{
+				Sep = "'";
+			}
+			setShift(true);
+			Ret.setValue(takeSubStr(Sep, Sep));
+		}
+		loadOptions();
+		if (!Options.shift)
+		{
+			loadPoint();
+		}
+		else
+		{
+			if (!valueless && Options.stepout) { ++ReadPos; }
+			if (valueless && !Options.stepout) { --ReadPos; }
+			clearPointSave();
+		}
+		return Ret;
+	}
+	DTST::XmlText getAmpFormattedText()
+	{
+		DTST::List<unsigned>* ToReplace = new DTST::List<unsigned>();
+		std::string RetText = "";
+		char CurrentSym = Text[0][ReadPos.getPosition()];
+		if (Options.shift != true) { savePoint(); }
+		saveOptions();
+		setShift(true);
+		setStepout(false);
+		skipSyms("	 \n\r>");
+		while (CurrentSym != '<')
+		{
+			if (CurrentSym == '&')
+			{
+				ToReplace->addEl(RetText.length());
+				RetText += DTST::toSymbol[takeSubStr("", " ", true)];
+			}
+			else
+			{
+				RetText += CurrentSym;
+			}
+			CurrentSym = Text[0][(++ReadPos).getPosition()];
+		}
+		loadOptions();
+		if (Options.shift) { loadPoint(); }
+		return XmlText(ToReplace, RetText);
+	}
+};
+	class XmlTree : public DTST::XmlText
+	{
+		DTST::List<DTST::XmlText*> Childrens;
+		std::string Namespace = "";
+		DTST::List<DTST::Attribute> Attributes;
+		unsigned AttributeNumber;
+		unsigned ChildNumber;
+		short Depth;
+	public:
+		static bool xmlTreeCheck(std::string* text)
+		{
+			DTST::parser <std::string> parse(text);
+			if (parse.compSubStr("'", 0) + 1 % 2 == 0) { return false; }
+			if (parse.compSubStr("\"", 0) + 1 % 2 == 0) { return false; }
+			if (parse.compSubStr("<", 0) != parse.compSubStr(">", 0)) { return false; }
 			return true;
 		}
-		~AVLDict() { delAVLDict(); }
-	};
+		~XmlTree()
+		{
+			//free(Childrens);
+			//free(Attributes);
+		}
+		XmlTree(std::string* Text, unsigned* edge = NULL, short depth = 0) : DTST::XmlText(NULL), Depth(depth)
+		{
+			long IndexTemp = 0;
+			bool AddNamespace;
+			if (edge) { IndexTemp = *edge; }
+			DTST::parser <std::string> parse(Text, IndexTemp, Text->length());
+			parse.setShift(true);
+			parse.setStepout(false);
+			parse.compSubStr("<");
+			DTST::Attribute Temp = parse.takeAttribute(true);
+			Name = Temp.name();
+			Namespace = Temp.nameSpace();
+			parse.setShift(false);
+			IndexTemp = parse.compSubStr(">");
+			AttributeNumber = parse.compSubStr("'", 0, IndexTemp);
+			AttributeNumber += parse.compSubStr("\"", 0, IndexTemp);
+			AttributeNumber /= 2;
+			parse.setShift(true);
+			for (int i = 0; i < AttributeNumber; ++i)
+			{
+				Attributes.addEl(parse.takeAttribute(false));
+			}
+			if (Text[0][parse.getCurrentPos()] != '/')
+			{
+				unsigned NextPos;
+				while (1)
+				{
+					if (Text[0][parse.skipSyms("		\n\r>/")] == '<')
+					{
+						if (Text[0][parse.skipSyms("		\n\r") + 1] == '/')
+						{
+							Temp = parse.takeAttribute(true);
+							if (Temp.name() == Name && Temp.nameSpace() == Namespace)
+							{
 
-	template<typename T>
-	class List
-	{
-		class ListEl
-		{
-		public:
-			T content;
-			ListEl* Prev, * Next;
-			ListEl(T In) : content(In) {}
-			ListEl() {}
-		};
-		unsigned Length;
-		ListEl* First = NULL, * Last = NULL;
-		mutable ListEl* Current = NULL;
-		void insertEl(ListEl* el, ListEl* key, bool order)
-		{
-			++Length;
-			if (order)
-			{
-				if (key->Next != NULL)
-				{
-					key->Next->Prev = el;
-					el->Next = key->Next;
-				}
-				else
-				{
-					Last = el;
-				}
-				key->Next = el;
-				el->Prev = key;
-			}
-			else
-			{
-				if (key->Prev != NULL)
-				{
-					key->Prev->Next = el;
-					el->Prev = key->Prev;
-				}
-				else
-				{
-					First = el;
-				}
-				key->Prev = el;
-				el->Next = key;
-			}
-		}
-		ListEl* findEl(T key, unsigned num = 1)
-		{
-			unsigned i = 0;
-			while (i < Length)
-			{
-				if (Current->content == key)
-				{
-					if (--num == 0) { return Current; }
-				}
-				if (Current == Last) { break; }
-				Current = Current->Next;
-				++i;
-			}
-			return NULL;
-		}
-		void delEl(ListEl* del)
-		{
-			if (del == Current) 
-			{
-				if (Current->Prev) { Current = Current->Prev; }
-				else { Current = Current->Next; }
-			}
-			if (del == Last)
-			{
-				Last = Last->Prev;
-			}
-			if (del == First)
-			{
-				First = First->Next;
-			}
-			if (del == NULL)
-			{
-				return;
-			}
-			if (del->Next == NULL)
-			{
-				if (del->Prev == NULL) {}
-				else { del->Prev->Next = NULL; }
-			}
-			else
-			{
-				if (del->Prev == NULL) { del->Next->Prev = NULL; }
-				else
-				{
-					del->Prev->Next = del->Next;
-					del->Next->Prev = del->Prev;
+								break;
+							}
+							else
+							{
+								std::cerr << "Invalid XML structure\n";
+							}
+						}
+						NextPos = parse.getCurrentPos();
+						XmlTree* xTmp = new XmlTree(Text, &NextPos, Depth + 1);
+						parse.setCurentPos(NextPos);
+						Childrens.addEl(xTmp);
+						//Childrens.addEl(XmlTree(Text, &NextPos, Depth + 1));
+					}
+					else
+					{
+						++ChildNumber;
+						DTST::XmlText* tmp = new DTST::XmlText(parse.getAmpFormattedText());
+						Childrens.addEl(tmp);
+					}
 				}
 			}
-			--Length;
-			delete del;
-			del = NULL;
+			if (edge) { *edge = parse.getCurrentPos(); }
+			return;
 		}
-		void delAll()
+		std::string textDump(bool showFormat) override
 		{
-			while (Length > 0)
+			std::string Ret = '<' + Namespace;
+			if (showFormat)
 			{
-				delEl(Last);
-			}
-		}
-		void resetCounter(bool edge)
-		{
-			if (edge) { Current = First; }
-			else { Current = Last; }
-		}
-	public:
-		List() {}
-		List(List& orig)
-		{
-			*this = orig;
-		}
-		List(List&& orig)
-		{
-			*this = orig;
-		}
-		//void* getLastElID() { return (void*)Last; }
-		//void* getFirstElID() { return (void*)First; }
-		void addEl(T el)
-		{
-			ListEl* temp = new ListEl(el);
-			if (Length == 0)
-			{
-				Last = First = Current = temp;
-				++Length;
-			}
-			else { insertEl(temp, Last, true); }
-		}
-		T popEl()
-		{
-			T temp = Last->content;
-			delEl(Last);
-			return temp;
-		}
-		T dumpEl()
-		{
-			T temp = First->content;
-			delEl(First);
-			return temp;
-		}
-		T getLastEl() { return Last->content; }
-		T getFirstEl() { return First->content; }
-		unsigned length() { return Length; }
-		T operator [] (long index)
-		{
-			if (index >= Length && index < (Length * -1))
-			{
-				std::cerr << "Index out of List's bounds";
-			}
-			ListEl* temp;
-			if (index < 0) 
-			{
-				temp = Last;
-				while (index != -1)
+				for (int i = 0; i < Depth; ++i)
 				{
-					temp = temp->Prev;
-					++index;
+					Ret = '\t' + Ret;
 				}
 			}
-			else
+			if (Namespace.length() != 0) { Ret += ':'; }
+			Ret += Name;
+			Attributes.setCountFirst();
+			for (unsigned i = 0; i < Attributes.length(); ++i)
 			{
-				temp = First;
-				while (index != 0)
+				DTST::Attribute temp = Attributes.countList(true);
+				Ret += ' ' + temp.textDump();
+			}
+			if (Childrens.length() == 0) { Ret += "/"; }
+			Ret += '>';
+			if (showFormat) { Ret += '\n'; }
+			Childrens.setCountFirst();
+			for (unsigned i = 0; i < Childrens.length(); ++i)
+			{
+				XmlText* tmp = Childrens.countList(true);
+				Ret += tmp->textDump(showFormat);
+			}
+			if (Childrens.length() != 0)
+			{
+				if (showFormat)
 				{
-					temp = temp->Next;
-					--index;
+					for (int i = 0; i < Depth; ++i)
+					{
+						Ret += '\t';
+					}
 				}
+				Ret += '<';
+				Ret += '/' + Namespace;
+				if (Namespace.length() != 0) { Ret += ':'; }
+				Ret += Name + '>';
+				if (showFormat) { Ret += '\n'; }
 			}
-			return temp->content;
-		}
-		List & operator = (const List &second)
-		{
-			if (Length != 0)
-			{
-				delAll();
-			}
-			ListEl* temp = second.Current;
-			second.Current = second.First;
-			while (Length != second.Length)
-			{
-				addEl(second.Current->content);
-				if (temp == second.Current) { Current = Last; }
-				second.Current = second.Current->Next;
-			}
-			second.Current = temp;
-			return *this;
-		}
-		List& operator = (const List&& second)
-		{
-			if (&second == this) { return *this; }
-			if (Length != 0) { delAll(); }
-			First = second.First;
-			Last = second.Last;
-			Current = second.Current;
-			Length = second.Length;
-			second.First = second.Last = second.Current = NULL;
-			second.Length = 0;
-			return *this;
-		}
-		T countList(bool direction)
-		{
-			ListEl* temp = Current;
-			if (direction) { Current = Current->Next; }
-			else { Current = Current->Prev; }
-			return temp->content;
-		}
-		void setCountFirst() { resetCounter(true); }
-		void setCountLast() { resetCounter(false); }
 
-		~List() 
-		{
-			delAll();
+			return Ret;
 		}
-
 	};
 }
-
-

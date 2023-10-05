@@ -1,5 +1,5 @@
 #pragma once
-#include "TemplateEntities.h"
+#include "BaseTemplateEntities.h"
 namespace DTST
 {
 	AVLDict<std::string, std::string> SpecSymbolDict();
@@ -7,4 +7,6 @@ namespace DTST
 
 	const AVLDict<std::string, std::string> toCode = SpecCodeDict();
 	const AVLDict<std::string, std::string> toSymbol = SpecSymbolDict();
+
+	
 }
