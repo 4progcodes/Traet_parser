@@ -12,10 +12,21 @@ using namespace std;
 
 int main()
 {
-	string a = "<w:p w14:paraId=\"055D6CC6\" w14:textId=\"3080C9E9\" w:rsidR=\"00C41096\" w:rsidRPr=\"00AB730C\" w:rsidRDefault=\"00745B3E\"><w:pPr><w:rPr><w:lang w:val=\"en-US\"/></w:rPr></w:pPr></w:p>";
-	DTST::XmlTree b(&a);
-	cout << b.textDump(true);
-	/*string c = b.textDump(false);
+	DTST::SuperInputStream is("D:\\document.xml");
+	DTST::XmlTree b(&is);
+	string a = "", a1 = b.textDump(false);
+	cout << b.textDump(true) << endl << endl;
+	for (int i = 0; i < is.length(); ++i)
+	{
+		a += is[i];
+	}
+	for (int i = 0; i < is.length(); ++i)
+	{
+		if (a[i] == a1[i]) { cout << a1[i]; }
+		else { cout << "\t\t\tHERE (orig : " << a[i] << "copy: " << a1[i] << ")"; }
+	}
+	if (a == a1) { cout << "ass\n"; }
+	/*string c = b.textdump(false);
 	int l = a.length();
 	if (l > c.length())
 	{

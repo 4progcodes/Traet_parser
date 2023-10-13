@@ -14,11 +14,11 @@ namespace DTST
 	AVLDict<std::string, std::string> SpecCodeDict()
 	{
 		AVLDict<std::string, std::string> ret = AVLDict<std::string, std::string>();
-		ret.addEl("<", "&lt");
-		ret.addEl(">", "&gt");
-		ret.addEl("&", "&amp");
-		ret.addEl("\"", "&quot");
-		ret.addEl("'", "&apos");
+		ret.addEl("<", "&lt;");
+		ret.addEl(">", "&gt;");
+		ret.addEl("&", "&amp;");
+		ret.addEl("\"", "&quot;");
+		ret.addEl("'", "&apos;");
 		return ret;
 	}
 }

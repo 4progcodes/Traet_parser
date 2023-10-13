@@ -52,15 +52,15 @@ namespace DTST
 		this->Position = second.Position;
 		return *this;
 	}
-	unsigned Mark::getPosition() { return Position; }
-	bool Mark::setPosition(unsigned NewPosition)
+	unsigned Mark::getPos() { return Position; }
+	bool Mark::setPos(unsigned NewPosition)
 	{
 		if (NewPosition > MaxPosition || NewPosition < MinPosition) { return false; }
 		Position = NewPosition;
 		return true;
 	}
-	unsigned Mark::getMaxPosition() { return MaxPosition; }
-	bool Mark::setMaxPosition(unsigned NewPosition)
+	unsigned Mark::getMaxPos() { return MaxPosition; }
+	bool Mark::setMaxPos(unsigned NewPosition)
 	{
 		if (NewPosition < MinPosition)
 		{
@@ -73,8 +73,8 @@ namespace DTST
 		MaxPosition = NewPosition;
 		return true;
 	}
-	unsigned Mark::getMinPosition() { return MinPosition; }
-	bool Mark::setMinPosition(unsigned NewPosition)
+	unsigned Mark::getMinPos() { return MinPosition; }
+	bool Mark::setMinPos(unsigned NewPosition)
 	{
 		if (NewPosition > MaxPosition)
 		{
@@ -101,4 +101,25 @@ namespace DTST
 		std::string Ret = Name + '=' + '"' + Value + '"';
 		return Namespace.length() == 0 ? Ret : Namespace + ':' + Ret;
 	}
-}
+
+	SuperInputStream::SuperInputStream(std::string filePath) : In(filePath, std::ios::in | std::ios::ate)
+	{
+		if (In.is_open())
+		{
+			Length = In.tellg();
+			return;
+		}
+		else { std::cerr << "Unable to open file\n"; }
+	}
+	char SuperInputStream::operator [] (unsigned index)
+	{
+		if (index >= Length) { std::cout << "Index out of File's bounds\n"; }
+		else 
+		{
+			In.seekg(index);
+			return In.get();
+		}
+	}
+	unsigned SuperInputStream::length() { return Length; }
+
+};

@@ -1,5 +1,6 @@
 #pragma once
 #include <iostream>
+#include <fstream>
 namespace DTST
 {
 	class Mark
@@ -12,12 +13,12 @@ namespace DTST
 		Mark& operator -- ();
 		Mark operator -- (int);
 		Mark& operator = (Mark& second);
-		unsigned getPosition();
-		bool setPosition(unsigned NewPosition);
-		unsigned getMaxPosition();
-		bool setMaxPosition(unsigned NewPosition);
-		unsigned getMinPosition();
-		bool setMinPosition(unsigned NewPosition);
+		unsigned getPos();
+		bool setPos(unsigned NewPosition);
+		unsigned getMaxPos();
+		bool setMaxPos(unsigned NewPosition);
+		unsigned getMinPos();
+		bool setMinPos(unsigned NewPosition);
 	};
 
 	class Attribute
@@ -35,5 +36,16 @@ namespace DTST
 		void setName(std::string N);
 		void setValue(std::string V);
 		std::string textDump();
+	};
+
+	class SuperInputStream
+	{
+	protected:
+		unsigned Length;
+		std::ifstream In;
+	public:
+		SuperInputStream(std::string filePath);
+		char operator [] (unsigned index);
+		unsigned length();
 	};
 }
