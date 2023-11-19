@@ -1,4 +1,2 @@
 #pragma once
-#include "DTST.h"
-#include "TemplateEntities.h"
-#include "BaseStructures.h"
+#include "FinalTemplateEntities.cpp"

@@ -433,3 +433,5 @@ FodyWeavers.xsd
 *.vcxproj.*
 *.vcxproj
 x64/
+
+SeparatedCode.h

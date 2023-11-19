@@ -1,12 +1,18 @@
 #pragma once
-#include "BaseTemplateEntities.h"
+#include "BaseTemplateEntities.cpp"
+#include "Enums.h"
 namespace DTST
 {
-	AVLDict<std::string, std::string> SpecSymbolDict();
-	AVLDict<std::string, std::string> SpecCodeDict();
+	SafeAvlDict<std::string, std::string> specSymbolDict();
+	SafeAvlDict<std::string, std::string> specCodeDict();
+	SafeAvlDict<unsigned short, std::string> codeToEncodingDict();
+	SafeAvlDict<std::string, unsigned short> encodingToCodeDict();
 
-	const AVLDict<std::string, std::string> toCode = SpecCodeDict();
-	const AVLDict<std::string, std::string> toSymbol = SpecSymbolDict();
+
+	const SafeAvlDict<std::string, std::string> entityToCode = specCodeDict();
+	const SafeAvlDict<std::string, std::string> entityToSymbol = specSymbolDict();
+	const SafeAvlDict<unsigned short, std::string> encodingToSymbol = codeToEncodingDict();
+	const SafeAvlDict<std::string, unsigned short> encodingToCode = encodingToCodeDict();
 
 	
 }

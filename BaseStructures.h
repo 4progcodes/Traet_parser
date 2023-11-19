@@ -38,6 +38,7 @@ namespace DTST
 		std::string textDump();
 	};
 
+	//class 
 	class SuperInputStream
 	{
 	protected:
@@ -48,4 +49,7 @@ namespace DTST
 		char operator [] (unsigned index);
 		unsigned length();
 	};
+	
+
+
 }

@@ -1,4 +1,5 @@
 #include "BaseStructures.h"
+#include "Enums.h"
 
 namespace DTST
 {
@@ -122,4 +123,4 @@ namespace DTST
 	}
 	unsigned SuperInputStream::length() { return Length; }
 
-};
+	};
